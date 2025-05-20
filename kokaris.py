@@ -48,7 +48,7 @@ class Block:
                 return False
 
         return True
-
+    
     def drop(self, board):
         if self.count < self.drop_rate:
             self.count += 1
@@ -131,40 +131,43 @@ def initialize_game():
 
     return board, block
 
-#ゲームオーバー
+
 def gameover(screen, record):
+    """
+    gameover時に、リザルト画面を表示する
+
+    処理内容:
+    - 黒背景に「GAMEOVER」と「RESULT」の文字を描画する。
+    - ゲーム中のスコア・レベルなどを表示する。
+    - 画像（こうかとん）を表示する。
+    - ユーザーが[ESC]キーを押すか、ウィンドウを閉じるまで待機する。
+    """
     screen.fill((0, 0, 0))
-
-    image = pygame.image.load("ex5/.fig/bijokokaton.png")
-    image = pygame.transform.scale(image, (481, 565))  # 必要ならサイズ調整
+    image = pygame.image.load("ex5/.fig/bijokokaton.png") #こうかとん（女）の画像
+    image = pygame.transform.scale(image, (481, 565))  
     screen.blit(image, (400, 100))  
-
+    #gameoverの文字表示
     font1 = pygame.font.Font(None, 80)
-    gameover_text = font1.render("GAMEOVER", True, (255, 0, 0))
-    screen.blit(gameover_text, [200, 100])
-    
+    text1 = font1.render("GAMEOVER", True, (255, 0, 0))
+    screen.blit(text1, [200, 100])
+    #resultの文字表示
     font2 = pygame.font.Font(None, 60)
-    result_text = font2.render("RESULT", True, (255, 255, 255))
-    screen.blit(result_text, [200, 200])
-    
+    text2 = font2.render("RESULT", True, (255, 255, 255))
+    screen.blit(text2, [200, 200])
+    #revelの文字と数値を表示
     font = pygame.font.Font(None, 50)
-    text1 = font.render("LEVEL:", True, (255, 255, 255))
+    text3 = font.render("LEVEL:", True, (255, 255, 255))
     level = font.render("{}".format(record.level), True, (255, 255, 255))
-    screen.blit(text1, [100, 300])
+    screen.blit(text3, [100, 300])
     screen.blit(level, [400, 300])
-
-    text2 = font.render("CLEARED ROW:", True, (255, 255, 255))
-    cleared_row = font.render("{}".format(record.cleared_row), True, (255, 255, 255))
-    screen.blit(text2, [100, 400])
-    screen.blit(cleared_row, [400, 400])
-
-    text3 = font.render("SCORE", True, (255, 255, 255))
+    #scoreの文字と数値を表示
+    text4 = font.render("SCORE", True, (255, 255, 255))
     score = font2.render("{0:012d}".format(record.score), True, (255, 255, 255))
-    screen.blit(text3, [100, 500])
-    screen.blit(score, [200, 550])
+    screen.blit(text4, [100, 400])
+    screen.blit(score, [200, 450])
 
     pygame.display.update()
-    
+    #リザルト画面からの退出
     while(1):
         pygame.time.wait(50)
         for event in pygame.event.get():
@@ -191,6 +194,7 @@ def draw_board(screen, board, block_color):
 
 def main():
     pygame.init()
+    pygame.mixer.init()
     screen = pygame.display.set_mode((1000, 750))
     pygame.display.set_caption("Simple Tetris")
 
