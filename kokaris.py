@@ -100,6 +100,23 @@ class Record:
         
         if self.level < 40 and self.level_up[self.level] <= self.cleared_row: # level 40 is max
             self.level += 1
+
+    def show(self, screen):
+        font = pygame.font.Font(None, 50)
+        text1 = font.render("LEVEL:", True, (255, 255, 255))
+        level = font.render("{}".format(self.level), True, (255, 255, 255))
+        screen.blit(text1, [500, 300])
+        screen.blit(level, [700, 300])
+        
+        text2 = font.render("CLEARED ROW:", True, (255, 255, 255))
+        cleared_row = font.render("{}".format(self.cleared_row), True, (255, 255, 255))
+        screen.blit(text2, [500, 360])
+        screen.blit(cleared_row, [900, 360])
+        
+        text3 = font.render("SCORE", True, (255, 255, 255))
+        score = font.render("{0:012d}".format(self.score), True, (255, 255, 255))
+        screen.blit(text3, [500, 420])
+        screen.blit(score, [600, 480])
             
 def initialize_game():
     board = [[0 for _ in range(MAX_COL + 2)] for _ in range(MAX_ROW + 3)]
@@ -113,6 +130,51 @@ def initialize_game():
     block = Block(block_type)
 
     return board, block
+
+#ゲームオーバー
+def gameover(screen, record):
+    screen.fill((0, 0, 0))
+
+    image = pygame.image.load("ex5/.fig/bijokokaton.png")
+    image = pygame.transform.scale(image, (481, 565))  # 必要ならサイズ調整
+    screen.blit(image, (400, 100))  
+
+    font1 = pygame.font.Font(None, 80)
+    gameover_text = font1.render("GAMEOVER", True, (255, 0, 0))
+    screen.blit(gameover_text, [200, 100])
+    
+    font2 = pygame.font.Font(None, 60)
+    result_text = font2.render("RESULT", True, (255, 255, 255))
+    screen.blit(result_text, [200, 200])
+    
+    font = pygame.font.Font(None, 50)
+    text1 = font.render("LEVEL:", True, (255, 255, 255))
+    level = font.render("{}".format(record.level), True, (255, 255, 255))
+    screen.blit(text1, [100, 300])
+    screen.blit(level, [400, 300])
+
+    text2 = font.render("CLEARED ROW:", True, (255, 255, 255))
+    cleared_row = font.render("{}".format(record.cleared_row), True, (255, 255, 255))
+    screen.blit(text2, [100, 400])
+    screen.blit(cleared_row, [400, 400])
+
+    text3 = font.render("SCORE", True, (255, 255, 255))
+    score = font2.render("{0:012d}".format(record.score), True, (255, 255, 255))
+    screen.blit(text3, [100, 500])
+    screen.blit(score, [200, 550])
+
+    pygame.display.update()
+    
+    while(1):
+        pygame.time.wait(50)
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == KEYDOWN:
+                if event.key == K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
 
 def draw_board(screen, board, block_color):
     for row in range(2, MAX_ROW + 3):
@@ -129,7 +191,7 @@ def draw_board(screen, board, block_color):
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((500, 750))
+    screen = pygame.display.set_mode((1000, 750))
     pygame.display.set_caption("Simple Tetris")
 
     block_color = [(50, 50, 50), (150, 150, 150), (255, 0, 0), (0, 0, 255), (255, 165, 0),
@@ -137,6 +199,7 @@ def main():
 
     board, block = initialize_game()
     game_over = False
+    record = Record()
 
     while not game_over:
         pygame.time.wait(10)
@@ -154,6 +217,7 @@ def main():
 
             if block.drop(board) == 1:
                 if block.place(board) == 1:
+                    gameover(screen,record)
                     game_over = True
                 else:
                     block_type = random.randint(2, 8)
