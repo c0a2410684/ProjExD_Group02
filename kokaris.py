@@ -129,7 +129,7 @@ def draw_board(screen, board, block_color):
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((500, 750))
+    screen = pygame.display.set_mode((1000, 750))
     pygame.display.set_caption("Simple Tetris")
 
     block_color = [(50, 50, 50), (150, 150, 150), (255, 0, 0), (0, 0, 255), (255, 165, 0),
