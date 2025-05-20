@@ -26,6 +26,7 @@ class Block:
         self.shape = copy.deepcopy(self.shapes[block_type])
         self.row = 1  # initial position
         self.col = 5
+        self.level = 0
         self.drop_rate = 60  # 固定の落下速度
         self.count = 0
 
@@ -82,6 +83,24 @@ class Block:
                                       BOARD_OFFSET_Y + 2 + BLOCK_SIZE * (row - 2),
                                       BLOCK_SIZE - 4, BLOCK_SIZE - 4))
 
+class Record:
+    def __init__(self):
+        self.cleared_row = 0
+        self.score = 0
+        self.level = 0
+        self.score_table = [0, 80, 100, 300, 1200]
+        self.level_up = [2, 5, 8, 12, 16, 20, 25, 30, 35, 40, # level 0 to 9
+                         46, 52, 58, 64, 70, 77, 84, 91, 98, 105, # level 10 to 19
+                         112, 120, 128, 136, 144, 152, 160, 168, 177, 186, # level 20 to 29
+                         195, 204, 213, 222, 231, 240, 255, 270, 285, 300, 1000] # 30 to 40
+        
+    def update(self, count):
+        self.score += self.score_table[count]*(self.level+1)
+        self.cleared_row += count
+        
+        if self.level < 40 and self.level_up[self.level] <= self.cleared_row: # level 40 is max
+            self.level += 1
+            
 def initialize_game():
     board = [[0 for _ in range(MAX_COL + 2)] for _ in range(MAX_ROW + 3)]
     for col in range(MAX_COL + 2):
