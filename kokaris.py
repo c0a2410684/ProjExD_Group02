@@ -27,6 +27,7 @@ class Block:
         self.shape = copy.deepcopy(self.shapes[block_type])
         self.row = 1  # initial position
         self.col = 5
+        self.level = 0
         self.count = 0
 
     # key command movement
@@ -116,7 +117,42 @@ class Block:
                 return 1
             board[row][col] = self.block_type
         return 0
-
+    
+class Record:
+    def __init__(self):
+        self.cleared_row = 0
+        self.score = 0
+        self.level = 0
+        self.score_table = [0, 80, 100, 300, 1200]
+        self.level_up = [2, 5, 8, 12, 16, 20, 25, 30, 35, 40, # level 0 to 9
+                         46, 52, 58, 64, 70, 77, 84, 91, 98, 105, # level 10 to 19
+                         112, 120, 128, 136, 144, 152, 160, 168, 177, 186, # level 20 to 29
+                         195, 204, 213, 222, 231, 240, 255, 270, 285, 300, 1000] # 30 to 40
+        
+    def update(self, count):
+        self.score += self.score_table[count]*(self.level+1)
+        self.cleared_row += count
+        
+        if self.level < 40 and self.level_up[self.level] <= self.cleared_row: # level 40 is max
+            self.level += 1
+    
+    def show(self, screen):
+        font = pygame.font.Font(None, 50)
+        text1 = font.render("LEVEL:", True, (255, 255, 255))
+        level = font.render("{}".format(self.level), True, (255, 255, 255))
+        screen.blit(text1, [500, 300])
+        screen.blit(level, [700, 300])
+        
+        text2 = font.render("CLEARED ROW:", True, (255, 255, 255))
+        cleared_row = font.render("{}".format(self.cleared_row), True, (255, 255, 255))
+        screen.blit(text2, [500, 360])
+        screen.blit(cleared_row, [900, 360])
+        
+        text3 = font.render("SCORE", True, (255, 255, 255))
+        score = font.render("{0:012d}".format(self.score), True, (255, 255, 255))
+        screen.blit(text3, [500, 420])
+        screen.blit(score, [600, 480])
+        
 # ブロックとボードの初期化
 def initialize_game():
     board = [[0 for _ in range(MAX_COL + 2)] for _ in range(MAX_ROW + 3)]
@@ -201,7 +237,7 @@ def main():
 
         draw_board(screen, board, block_color)
         block.draw(screen, block_color)
-
+        record = Record()
         # move command
         pressed_key = pygame.key.get_pressed()
         if pressed_key[K_DOWN]:
@@ -224,7 +260,7 @@ def main():
                 next_block_type = random.randint(2, 8)
                 if not block.moveable(board, [0, 0]):
                     game_over = True
-
+        record.show(screen)
         pygame.display.update()
 
         for event in pygame.event.get():
