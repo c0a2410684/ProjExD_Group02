@@ -4,6 +4,7 @@ import sys
 import random
 import copy
 from typing import List, Tuple
+from pathlib import Path
 
 # 定数
 MAX_ROW: int = 20
@@ -278,6 +279,38 @@ def draw_board(screen: pygame.Surface, board: List[List[int]],
                 pygame.draw.rect(screen, block_color[board[row][col]],
                                  Rect(draw_x + 2, draw_y + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4))
 
+
+def start(screen: pygame.Surface):
+    """
+    追加機能
+    引数：screen
+    スタート画面を描画する
+    ENTERでスタート、ESCAPEでゲーム終了
+    """
+    font1 = pygame.font.Font(None, 150)
+    font2 = pygame.font.Font(None, 50)
+    title = font1.render("KOKARIS", True, (255, 255, 255)) #画面に表示する文字
+    text = font2.render("Press ENTER to start", True, (255, 255, 255)) #画面に表示する文字
+
+    screen.blit(title, [270, 260])
+    screen.blit(text, [320, 560])
+
+    pygame.display.update() #スタート画面に更新する
+    
+    while True:
+        pygame.time.wait(50)
+        keys = pygame.key.get_pressed()
+        if keys[K_ESCAPE]: #escが押されたときゲームを閉じる
+            pygame.quit()
+            sys.exit()
+        if keys[K_RETURN]: #enterがおされたとき、ゲーム画面に移行する
+            break
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+
+
 def main() -> None:
     """
     メインゲームループ。
@@ -295,6 +328,13 @@ def main() -> None:
 
     game_over: bool = False
     start_time: int = pygame.time.get_ticks()  # ゲーム開始時の時間を記録
+
+    script_dir = Path(__file__).resolve().parent
+    sound_path = script_dir / "fig/sample.wav"  #相対パス
+    pygame.mixer.music.load(str(sound_path))  #音声の再生
+    pygame.mixer.music.play()
+
+    start(screen)  #スタート画面
 
     while not game_over:
         pygame.time.wait(10)
