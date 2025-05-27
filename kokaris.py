@@ -118,7 +118,7 @@ class Block:
             board[row][col] = self.block_type
         return 0
     
-class Record:
+class Score:
     def __init__(self):
         self.cleared_row = 0
         self.score = 0
@@ -216,6 +216,7 @@ def draw_board(screen, board, block_color):
             else:
                 pygame.draw.rect(screen, block_color[board[row][col]],
                                  Rect(draw_x + 2, draw_y + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4))
+                
 
 def main():
     pygame.init()
@@ -229,6 +230,8 @@ def main():
     next_block_type = random.randint(2, 8)
 
     game_over = False
+    
+    record = Score()
 
     while not game_over:
         pygame.time.wait(10)
@@ -237,7 +240,6 @@ def main():
 
         draw_board(screen, board, block_color)
         block.draw(screen, block_color)
-        record = Record()
         # move command
         pressed_key = pygame.key.get_pressed()
         if pressed_key[K_DOWN]:
@@ -255,6 +257,12 @@ def main():
                 count, row_numbers = find_deleting_row(board)
                 if count > 0:
                     delete_row(screen, board, row_numbers, block_color)
+                    record.update(count) 
+                screen.fill((0, 0, 0))
+                draw_board(screen, board, block_color)
+                block.draw(screen, block_color)
+                record.show(screen)
+                pygame.display.update()
 
                 block = Block(next_block_type)
                 next_block_type = random.randint(2, 8)
