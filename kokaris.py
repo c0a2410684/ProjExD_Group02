@@ -15,29 +15,29 @@ FALL_SPEED = 30  # 一定の落下速度 (フレーム数)
 
 class Block:
     def __init__(self, block_type):
-        self.shapes = [[], [], # empty block and wall
-                       [[0, -1], [0, 0], [0, 1], [0, 2]], # I block
-                       [[-1, -1], [0, -1], [0, 0], [0, 1]], # J block
-                       [[0, -1], [0, 0], [0, 1], [-1, 1]], # L block
-                       [[0, -1], [0, 0], [-1, 0], [-1, 1]], # S blosk
-                       [[-1, -1], [-1, 0], [0, 0], [0, 1]], # Z block
-                       [[0, -1], [0, 0], [-1, 0], [0, 1]], # T block
-                       [[0, 0], [-1, 0], [0, 1], [-1, 1]]] # square
+        self.shapes = [[], [],  # empty block and wall
+                       [[0, -1], [0, 0], [0, 1], [0, 2]],  # I block
+                       [[-1, -1], [0, -1], [0, 0], [0, 1]],  # J block
+                       [[0, -1], [0, 0], [0, 1], [-1, 1]],  # L block
+                       [[0, -1], [0, 0], [-1, 0], [-1, 1]],  # S blosk
+                       [[-1, -1], [-1, 0], [0, 0], [0, 1]],  # Z block
+                       [[0, -1], [0, 0], [-1, 0], [0, 1]],  # T block
+                       [[0, 0], [-1, 0], [0, 1], [-1, 1]]]  # square
 
         self.block_type = block_type
         self.shape = copy.deepcopy(self.shapes[block_type])
-        self.row = 1 # initial position
+        self.row = 1  # initial position
         self.col = 5
         self.count = 0
 
     # key command movement
-    def move(self, board, direction): # direction down:0 left:1 right:2
+    def move(self, board, direction):  # direction down:0 left:1 right:2
         if direction == 0 and self.moveable(board, [1, 0]):
             self.row += 1
         elif direction == 1 and self.moveable(board, [0, -1]):
             self.col -= 1
         elif direction == 2 and self.moveable(board, [0, 1]):
-            self.col +=1
+            self.col += 1
 
     def moveable(self, board, direction):
         drow, dcol = direction
@@ -50,16 +50,15 @@ class Block:
 
         return True
 
-    def rotate(self, board, direction): # clockwise:0 anticloskwise:1
+    def rotate(self, board, direction):  # clockwise:0 anticloskwise:1
         # long bar rotates differently
         if self.block_type == 2:
             if direction == 0:
                 for dx in self.shape:
-                    dx[0], dx[1] = dx[1], 1-dx[0]
+                    dx[0], dx[1] = dx[1], 1 - dx[0]
             elif direction == 1:
                 for dx in self.shape:
-                    dx[0], dx[1] = 1-dx[1], dx[0]
-
+                    dx[0], dx[1] = 1 - dx[1], dx[0]
 
         # square doesn`t rotate
         elif self.block_type == 8:
@@ -99,7 +98,7 @@ class Block:
             self.row += 1
             return 0
         else:
-            return 1 # make new block
+            return 1  # make new block
 
     def draw(self, screen, block_color):
         for row, col in self.shape:
@@ -107,13 +106,14 @@ class Block:
             draw_y = GRID_OFFSET_Y + BLOCK_SIZE * (self.row + row - 2)
             if self.row + row > 1:
                 pygame.draw.rect(screen, (0, 0, 0), Rect(draw_x, draw_y, BLOCK_SIZE, BLOCK_SIZE))
-                pygame.draw.rect(screen, block_color[self.block_type], Rect(draw_x + 2, draw_y + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4))
+                pygame.draw.rect(screen, block_color[self.block_type],
+                                 Rect(draw_x + 2, draw_y + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4))
 
     def place(self, board):
         for dx in self.shape:
             row = self.row + dx[0]
             col = self.col + dx[1]
-            if not (2 <= row < MAX_ROW + 2 and 1 <= col < MAX_COL + 1): # placed block outside screen
+            if not (2 <= row < MAX_ROW + 2 and 1 <= col < MAX_COL + 1):  # placed block outside screen
                 return 1
             board[row][col] = self.block_type
         return 0
@@ -176,9 +176,11 @@ def draw_board(screen, board, block_color):
             draw_y = GRID_OFFSET_Y + BLOCK_SIZE * (row - 2)
             pygame.draw.rect(screen, (0, 0, 0), Rect(draw_x, draw_y, BLOCK_SIZE, BLOCK_SIZE))
             if board[row][col] < 2:
-                pygame.draw.rect(screen, block_color[board[row][col]], Rect(draw_x + 1, draw_y + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2))
+                pygame.draw.rect(screen, block_color[board[row][col]],
+                                 Rect(draw_x + 1, draw_y + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2))
             else:
-                pygame.draw.rect(screen, block_color[board[row][col]], Rect(draw_x + 2, draw_y + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4))
+                pygame.draw.rect(screen, block_color[board[row][col]],
+                                 Rect(draw_x + 2, draw_y + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4))
 
 
 def start(screen: pygame.Surface):
@@ -215,7 +217,7 @@ def start(screen: pygame.Surface):
 def main():
     pygame.init()
     screen = pygame.display.set_mode((1000, 770))
-    pygame.display.set_caption("KOKARIS") # title bar
+    pygame.display.set_caption("KOKARIS")  # title bar
 
     block_color = [(50, 50, 50), (150, 150, 150), (255, 0, 0), (0, 0, 255), (255, 165, 0),
                    (255, 0, 255), (0, 255, 0), (0, 255, 255), (255, 255, 0), (200, 200, 200), (100, 100, 100)]
@@ -235,7 +237,7 @@ def main():
     while not game_over:
         pygame.time.wait(10)
 
-        screen.fill((0, 0, 0)) # fill with black
+        screen.fill((0, 0, 0))  # fill with black
 
         draw_board(screen, board, block_color)
         block.draw(screen, block_color)
@@ -277,9 +279,9 @@ def main():
                     sys.exit()
 
                 # block rotation
-                if event.key == K_a or event.key == K_SPACE: # anti-clockwise
+                if event.key == K_a or event.key == K_SPACE:  # anti-clockwise
                     block.rotate(board, 1)
-                if event.key == K_s: # clockwise
+                if event.key == K_s:  # clockwise
                     block.rotate(board, 0)
 
     # Game Over: Do nothing, the loop will just stop
