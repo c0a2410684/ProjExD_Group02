@@ -324,7 +324,52 @@ def draw_board(screen: pygame.Surface, board: List[List[int]],
                 pygame.draw.rect(screen, block_color[board[row][col]],
                                  Rect(draw_x + 2, draw_y + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4))
                 
+def gameover(screen, record):
+    """
+    gameover時に、リザルト画面を表示する
 
+    処理内容:
+    - 黒背景に「GAMEOVER」と「RESULT」の文字を描画する。
+    - ゲーム中のスコア・レベルなどを表示する。
+    - 画像（こうかとん）を表示する。
+    - ユーザーが[ESC]キーを押すか、ウィンドウを閉じるまで待機する。
+    """
+    screen.fill((0, 0, 0))
+    image = pygame.image.load("ex5/.fig/bijokokaton.png") #こうかとん（女）の画像
+    image = pygame.transform.scale(image, (481, 565))  
+    screen.blit(image, (400, 100))  
+    #gameoverの文字表示
+    font1 = pygame.font.Font(None, 80)
+    text1 = font1.render("GAMEOVER", True, (255, 0, 0))
+    screen.blit(text1, [200, 100])
+    #resultの文字表示
+    font2 = pygame.font.Font(None, 60)
+    text2 = font2.render("RESULT", True, (255, 255, 255))
+    screen.blit(text2, [200, 200])
+    #revelの文字と数値を表示
+    font = pygame.font.Font(None, 50)
+    text3 = font.render("LEVEL:", True, (255, 255, 255))
+    level = font.render("{}".format(record.level), True, (255, 255, 255))
+    screen.blit(text3, [100, 300])
+    screen.blit(level, [400, 300])
+    #scoreの文字と数値を表示
+    text4 = font.render("SCORE", True, (255, 255, 255))
+    score = font2.render("{0:012d}".format(record.score), True, (255, 255, 255))
+    screen.blit(text4, [100, 400])
+    screen.blit(score, [200, 450])
+
+    pygame.display.update()
+    #リザルト画面からの退出
+    while(1):
+        pygame.time.wait(50)
+        for event in pygame.event.get():
+            if event.type == QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == KEYDOWN:
+                if event.key == K_ESCAPE:
+                    pygame.quit()
+                    sys.exit()
 
 def start(screen: pygame.Surface):
     """
@@ -410,6 +455,7 @@ def main() -> None:
         if bottom_flag == 1:
             if block.place(board) == 1:
                 game_over = True
+                gameover(screen, record)
             else:
                 count, row_numbers = find_deleting_row(board)
                 if count > 0:
@@ -426,6 +472,7 @@ def main() -> None:
                 can_hold = True
                 if not block.moveable(board, [0, 0]):
                     game_over = True
+                    gameover(screen, record)
                     
         if hold_block is not None:
             for dx in hold_block.shape:
