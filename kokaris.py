@@ -85,6 +85,7 @@ class Block:
             board (List[List[int]]): ゲームボードの状態。
             direction (int): 回転方向 (0: 時計回り, 1: 反時計回り)。
         """
+        #  old_shape = copy.deepcopy(self.shape) #aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
         # Iブロックの回転処理
         if self.block_type == 2:
             if direction == 0:
@@ -144,7 +145,16 @@ class Block:
             self.row += 1
             return 0
         else:
-            return 1  # 新しいブロックを作成
+            return 1 # 新しいブロックを作成
+
+    def draw(self, screen, block_color):
+        for row, col in self.shape:
+            draw_x = GRID_OFFSET_X + BLOCK_SIZE * (self.col + col)
+            draw_y = GRID_OFFSET_Y + BLOCK_SIZE * (self.row + row - 2)
+            if self.row + row > 1:
+                pygame.draw.rect(screen, (0, 0, 0), Rect(draw_x, draw_y, BLOCK_SIZE, BLOCK_SIZE))
+                pygame.draw.rect(screen, block_color[self.block_type],
+                                 Rect(draw_x + 2, draw_y + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4))
 
     def draw(self, screen: pygame.Surface, block_color: List[Tuple[int, int, int]]) -> None:
         """
@@ -374,7 +384,8 @@ def main() -> None:
 
     start(screen)  #スタート画面
     game_over = False
-    
+    hold_block = None
+    can_hold = True
     
 
     while not game_over:
@@ -412,8 +423,18 @@ def main() -> None:
 
                 block = Block(next_block_type)
                 next_block_type = random.randint(2, 8)
+                can_hold = True
                 if not block.moveable(board, [0, 0]):
                     game_over = True
+                    
+        if hold_block is not None:
+            for dx in hold_block.shape:
+                row = 2 + dx[0]
+                col = 15 + dx[1]
+                pygame.draw.rect(screen, block_color[hold_block.block_type],
+                                 Rect(GRID_OFFSET_X + col * BLOCK_SIZE,
+                                      GRID_OFFSET_Y + row * BLOCK_SIZE, BLOCK_SIZE - 4, BLOCK_SIZE - 4))
+        
         record.show(screen)
         pygame.display.update()
 
@@ -428,18 +449,29 @@ def main() -> None:
             FALL_SPEED -= 1
 
         pygame.display.update()
-
         for event in pygame.event.get():
             # 閉じるボタン
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
+
             if event.type == KEYDOWN:
                 # Escapeキーが押された場合
                 if event.key == K_ESCAPE:
                     pygame.quit()
                     sys.exit()
-
+                    
+                if event.key == K_LSHIFT:
+                    if can_hold:
+                        if hold_block is None:
+                            hold_block = block
+                            block = Block(next_block_type)
+                            next_block_type = random.randint(2, 8)
+                        else:
+                            hold_block, block = block, hold_block
+                        block.row, block.col = 1, 5
+                        can_hold = False
+                        
                 # ブロックの回転
                 if event.key == K_a or event.key == K_SPACE:  # 反時計回り
                     block.rotate(board, 1)
