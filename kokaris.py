@@ -180,6 +180,41 @@ class Block:
             board[row][col] = self.block_type
         return 0
     
+class Score:
+    def __init__(self):
+        self.cleared_row = 0
+        self.score = 0
+        self.level = 0
+        self.score_table = [0, 80, 100, 300, 1200]
+        self.level_up = [2, 5, 8, 12, 16, 20, 25, 30, 35, 40, # level 0 to 9
+                         46, 52, 58, 64, 70, 77, 84, 91, 98, 105, # level 10 to 19
+                         112, 120, 128, 136, 144, 152, 160, 168, 177, 186, # level 20 to 29
+                         195, 204, 213, 222, 231, 240, 255, 270, 285, 300, 1000] # 30 to 40
+        
+    def update(self, count):
+        self.score += self.score_table[count]*(self.level+1)
+        self.cleared_row += count
+        
+        if self.level < 40 and self.level_up[self.level] <= self.cleared_row: # level 40 is max
+            self.level += 1
+    
+    def show(self, screen):
+        font = pygame.font.Font(None, 50)
+        text1 = font.render("LEVEL:", True, (255, 255, 255))
+        level = font.render("{}".format(self.level), True, (255, 255, 255))
+        screen.blit(text1, [500, 300])
+        screen.blit(level, [700, 300])
+        
+        text2 = font.render("CLEARED ROW:", True, (255, 255, 255))
+        cleared_row = font.render("{}".format(self.cleared_row), True, (255, 255, 255))
+        screen.blit(text2, [500, 360])
+        screen.blit(cleared_row, [900, 360])
+        
+        text3 = font.render("SCORE", True, (255, 255, 255))
+        score = font.render("{0:012d}".format(self.score), True, (255, 255, 255))
+        screen.blit(text3, [500, 420])
+        screen.blit(score, [600, 480])
+        
 # ブロックとボードの初期化
 def initialize_game() -> Tuple[List[List[int]], Block]:
     """
@@ -278,6 +313,7 @@ def draw_board(screen: pygame.Surface, board: List[List[int]],
             else:  # ブロック
                 pygame.draw.rect(screen, block_color[board[row][col]],
                                  Rect(draw_x + 2, draw_y + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4))
+                
 
 
 def start(screen: pygame.Surface):
@@ -327,14 +363,19 @@ def main() -> None:
     next_block_type: int = random.randint(2, 8)
 
     game_over: bool = False
+    record = Score()
+    
     start_time: int = pygame.time.get_ticks()  # ゲーム開始時の時間を記録
 
     script_dir = Path(__file__).resolve().parent
     sound_path = script_dir / "fig/sample.wav"  #相対パス
-    pygame.mixer.music.load(str(sound_path))  #音声の再生
-    pygame.mixer.music.play()
+    # pygame.mixer.music.load(str(sound_path))  #音声の再生
+    # pygame.mixer.music.play()
 
     start(screen)  #スタート画面
+    game_over = False
+    
+    
 
     while not game_over:
         pygame.time.wait(10)
@@ -362,11 +403,19 @@ def main() -> None:
                 count, row_numbers = find_deleting_row(board)
                 if count > 0:
                     delete_row(screen, board, row_numbers, block_color)
+                    record.update(count) 
+                screen.fill((0, 0, 0))
+                draw_board(screen, board, block_color)
+                block.draw(screen, block_color)
+                record.show(screen)
+                pygame.display.update()
 
                 block = Block(next_block_type)
                 next_block_type = random.randint(2, 8)
                 if not block.moveable(board, [0, 0]):
                     game_over = True
+        record.show(screen)
+        pygame.display.update()
 
         # 時間経過による落下速度調整
         elapsed_time: int = pygame.time.get_ticks() - start_time
