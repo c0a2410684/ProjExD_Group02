@@ -12,6 +12,8 @@ MAX_COL: int = 10
 BLOCK_SIZE: int = 35
 GRID_OFFSET_X: int = 30
 GRID_OFFSET_Y: int = 30
+BOARD_OFFSET_X = 30
+BOARD_OFFSET_Y = 30
 FALL_SPEED: int = 60  # 初期落下速度 (フレーム数)
 
 class Block:
@@ -85,7 +87,7 @@ class Block:
             board (List[List[int]]): ゲームボードの状態。
             direction (int): 回転方向 (0: 時計回り, 1: 反時計回り)。
         """
-        #  old_shape = copy.deepcopy(self.shape) #aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+        #  old_shape = copy.deepcopy(self.shape) #a
         # Iブロックの回転処理
         if self.block_type == 2:
             if direction == 0:
@@ -147,16 +149,7 @@ class Block:
         else:
             return 1 # 新しいブロックを作成
 
-    def draw(self, screen, block_color):
-        for row, col in self.shape:
-            draw_x = GRID_OFFSET_X + BLOCK_SIZE * (self.col + col)
-            draw_y = GRID_OFFSET_Y + BLOCK_SIZE * (self.row + row - 2)
-            if self.row + row > 1:
-                pygame.draw.rect(screen, (0, 0, 0), Rect(draw_x, draw_y, BLOCK_SIZE, BLOCK_SIZE))
-                pygame.draw.rect(screen, block_color[self.block_type],
-                                 Rect(draw_x + 2, draw_y + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4))
-
-    def draw(self, screen: pygame.Surface, block_color: List[Tuple[int, int, int]]) -> None:
+    def draw(self, screen: pygame.Surface, block_images) -> None:
         """
         ブロックをゲーム画面に描画する。
 
@@ -164,13 +157,13 @@ class Block:
             screen (pygame.Surface): 描画先のPygameサーフェス。
             block_color (List[Tuple[int, int, int]]): ブロックの色リスト。
         """
-        for row, col in self.shape:
-            draw_x: int = GRID_OFFSET_X + BLOCK_SIZE * (self.col + col)
-            draw_y: int = GRID_OFFSET_Y + BLOCK_SIZE * (self.row + row - 2)
+        for row_offset, col_offset in self.shape:#降ってくるブロック(こうかとん)表示する
+            row = self.row + row_offset
+            col = self.col + col_offset
             if self.row + row > 1:  # 画面外の部分は描画しない
-                pygame.draw.rect(screen, (0, 0, 0), Rect(draw_x, draw_y, BLOCK_SIZE, BLOCK_SIZE))
-                pygame.draw.rect(screen, block_color[self.block_type],
-                                 Rect(draw_x + 2, draw_y + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4))
+                screen.blit(block_images[self.block_type],
+                        (BOARD_OFFSET_X + BLOCK_SIZE * col,
+                         BOARD_OFFSET_Y + BLOCK_SIZE * (row - 2)))
 
     def place(self, board: List[List[int]]) -> int:
         """
@@ -270,7 +263,7 @@ def find_deleting_row(board: List[List[int]]) -> Tuple[int, List[int]]:
 # 入力　スクリーン、ボード、消す行番号
 # 出力　なし
 def delete_row(screen: pygame.Surface, board: List[List[int]], row_number: List[int],
-               block_color: List[Tuple[int, int, int]]) -> None:
+               block_color: List[Tuple[int, int, int]], block_images) -> None:
     """
     指定された行を削除し、上の行を詰めるアニメーションを行う。
 
@@ -291,7 +284,7 @@ def delete_row(screen: pygame.Surface, board: List[List[int]], row_number: List[
             if _ < n_col:
                 board[row][1] = 9  # 消去アニメーションの色
         pygame.time.wait(8)
-        draw_board(screen, board, block_color)
+        draw_board(screen, board, block_color, block_images)
         pygame.display.update()
 
     for deleting_row in row_number:
@@ -303,7 +296,7 @@ def delete_row(screen: pygame.Surface, board: List[List[int]], row_number: List[
 # 入力　スクリーン、ゲームボード、ブロックの色
 # 出力　なし
 def draw_board(screen: pygame.Surface, board: List[List[int]],
-               block_color: List[Tuple[int, int, int]]) -> None:
+               block_color: List[Tuple[int, int, int]],block_images) -> None:
     """
     ゲームボードを描画する。
 
@@ -321,8 +314,13 @@ def draw_board(screen: pygame.Surface, board: List[List[int]],
                 pygame.draw.rect(screen, block_color[board[row][col]],
                                  Rect(draw_x + 1, draw_y + 1, BLOCK_SIZE - 2, BLOCK_SIZE - 2))
             else:  # ブロック
-                pygame.draw.rect(screen, block_color[board[row][col]],
-                                 Rect(draw_x + 2, draw_y + 2, BLOCK_SIZE - 4, BLOCK_SIZE - 4))
+                block_type = board[row][col]
+                #こうかとん２ここから
+                if 2 <= block_type <= 8:
+                    screen.blit(block_images[block_type],
+                            (BOARD_OFFSET_X + BLOCK_SIZE * col,
+                             BOARD_OFFSET_Y + BLOCK_SIZE * (row - 2)))
+                #ブロックこうかとん変更プログラム➁ここまで
                 
 def gameover(screen, record):
     """
@@ -410,6 +408,17 @@ def main() -> None:
     screen: pygame.Surface = pygame.display.set_mode((1000, 770))
     pygame.display.set_caption("KOKARIS")  # タイトルバー
 
+    '''
+    ブロックこうかとん追加プログラム➀
+    '''
+    block_images = [None, None]  # インデックス0,1は使わない
+
+    for i in range(2, 9):#2~8の数字を取得
+        image = pygame.image.load(f"C:/講義/2年前期/test/fig/{i}.png").convert_alpha()#ファイルから数字に対応した画像を持ってくる。
+        image = pygame.transform.scale(image, (BLOCK_SIZE, BLOCK_SIZE))
+        block_images.append(image)
+    #こうかとん追加１ここまで
+
     block_color: List[Tuple[int, int, int]] = [(50, 50, 50), (150, 150, 150), (255, 0, 0), (0, 0, 255), (255, 165, 0),
                                                 (255, 0, 255), (0, 255, 0), (0, 255, 255), (255, 255, 0),
                                                 (200, 200, 200), (100, 100, 100)]
@@ -438,8 +447,8 @@ def main() -> None:
 
         screen.fill((0, 0, 0))  # 画面を黒で塗りつぶす
 
-        draw_board(screen, board, block_color)
-        block.draw(screen, block_color)
+        draw_board(screen, board, block_color,block_images)
+        block.draw(screen, block_images)
 
         # キー入力処理
         pressed_key = pygame.key.get_pressed()
@@ -459,11 +468,11 @@ def main() -> None:
             else:
                 count, row_numbers = find_deleting_row(board)
                 if count > 0:
-                    delete_row(screen, board, row_numbers, block_color)
+                    delete_row(screen, board, row_numbers, block_color, block_images)
                     record.update(count) 
                 screen.fill((0, 0, 0))
-                draw_board(screen, board, block_color)
-                block.draw(screen, block_color)
+                draw_board(screen, board, block_color,block_images)
+                block.draw(screen, block_images)
                 record.show(screen)
                 pygame.display.update()
 
@@ -478,9 +487,9 @@ def main() -> None:
             for dx in hold_block.shape:
                 row = 2 + dx[0]
                 col = 15 + dx[1]
-                pygame.draw.rect(screen, block_color[hold_block.block_type],
-                                 Rect(GRID_OFFSET_X + col * BLOCK_SIZE,
-                                      GRID_OFFSET_Y + row * BLOCK_SIZE, BLOCK_SIZE - 4, BLOCK_SIZE - 4))
+                screen.blit(block_images[hold_block.block_type],
+                        (GRID_OFFSET_X + col * BLOCK_SIZE,
+                         GRID_OFFSET_Y + row * BLOCK_SIZE))
         
         record.show(screen)
         pygame.display.update()
