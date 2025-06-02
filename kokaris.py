@@ -414,7 +414,7 @@ def main() -> None:
     block_images = [None, None]  # インデックス0,1は使わない
 
     for i in range(2, 9):#2~8の数字を取得
-        image = pygame.image.load(f"C:/講義/2年前期/test/fig/{i}.png").convert_alpha()#ファイルから数字に対応した画像を持ってくる。
+        image = pygame.image.load(f"ex5/fig2/{i}.png").convert_alpha()#ファイルから数字に対応した画像を持ってくる。
         image = pygame.transform.scale(image, (BLOCK_SIZE, BLOCK_SIZE))
         block_images.append(image)
     #こうかとん追加１ここまで
